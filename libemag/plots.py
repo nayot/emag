@@ -27,12 +27,15 @@ def field_plot(field_func, num_grids=20,\
     Ex[Ex<-Emax] = -Emax
     Ey[Ey<-Emax] = -Emax
     
-    plt.quiver(X, Y, Ex, Ey)
+    ax = plt.axes()
     
-    plt.xlim([x_min, x_max])
-    plt.ylim([y_min, y_max])
+    ax.quiver(X, Y, Ex, Ey)
     
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.title(title)
-    plt.show()
+    ax.set_xlim([x_min, x_max])
+    ax.set_ylim([y_min, y_max])
+    
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    
+    return ax
