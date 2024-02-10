@@ -64,8 +64,113 @@ def fast_field_plot(field_func, num_grids=20,\
     def compute_E_field(x, y):
         return field_func(x, y)
     
-    E_field = np.array(Parallel(n_jobs=-1)(delayed(compute_E_field)(X[i, j], Y[i, j]) for i in range(num_grids) for j in range(num_grids)))
+    E_field = np.array(Parallel(n_jobs=-1)\
+                       (delayed(compute_E_field)(X[i, j], Y[i, j])\
+                         for i in range(num_grids) for j in range(num_grids)))
     E_field = E_field.reshape(num_grids, num_grids, -1)
+    
+    Ex = E_field[:,:,0]
+    Ey = E_field[:,:,1]
+    E = np.sqrt(Ex**2 + Ey**2)
+    
+    Emax = np.std(E) * 0.05
+    Ex[Ex>Emax] = Emax
+    Ey[Ey>Emax] = Emax
+    Ex[Ex<-Emax] = -Emax
+    Ey[Ey<-Emax] = -Emax
+    
+    ax = plt.axes()
+    
+    if contour:
+        E = np.log(E)
+        Emin = E.min()
+        Emax = E.max()
+        ax.contourf(X, Y, E, levels=np.linspace(Emin, Emax, 100), cmap=cmap)
+    
+    ax.quiver(X, Y, Ex, Ey)
+    
+    ax.set_xlim([x_min, x_max])
+    ax.set_ylim([y_min, y_max])
+    
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    
+    return ax
+
+
+import time
+def fast_field_plot2(field_func, num_grids=20,\
+               x_min=-10, x_max=10, y_min=-10, y_max=10,\
+               xlabel='x', ylabel='y', title='',\
+               contour=False, cmap='plasma'):
+    x = np.linspace(x_min, x_max, num_grids)
+    y = np.linspace(y_min, y_max, num_grids)
+    
+    X, Y = np.meshgrid(x, y)
+    
+    # Parallel computation of E_field
+    def compute_E_field(i, j):
+        return field_func(X[i, j], Y[i, j])
+    
+    time1 = time.time()
+    E_field_list = Parallel(n_jobs=-1)(delayed(compute_E_field)(i, j)\
+                                        for i in range(num_grids) for j in range(num_grids))
+    time2 = time.time()
+    print(time2 - time1)
+
+    time1 = time.time()
+    E_field = np.array(E_field_list).reshape(num_grids, num_grids, -1)
+    time2 = time.time()
+    print(time2 -time1)
+
+    Ex = E_field[:,:,0]
+    Ey = E_field[:,:,1]
+    E = np.sqrt(Ex**2 + Ey**2)
+    
+    Emax = np.std(E) * 0.05
+    Ex[Ex>Emax] = Emax
+    Ey[Ey>Emax] = Emax
+    Ex[Ex<-Emax] = -Emax
+    Ey[Ey<-Emax] = -Emax
+    
+    ax = plt.axes()
+    
+    if contour:
+        E = np.log(E)
+        Emin = E.min()
+        Emax = E.max()
+        ax.contourf(X, Y, E, levels=np.linspace(Emin, Emax, 100), cmap=cmap)
+    
+    ax.quiver(X, Y, Ex, Ey)
+    
+    ax.set_xlim([x_min, x_max])
+    ax.set_ylim([y_min, y_max])
+    
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    
+    return ax
+
+
+def fast_field_plot3(field_func, num_grids=20,\
+               x_min=-10, x_max=10, y_min=-10, y_max=10,\
+               xlabel='x', ylabel='y', title='',\
+               contour=False, cmap='plasma'):
+    x = np.linspace(x_min, x_max, num_grids)
+    y = np.linspace(y_min, y_max, num_grids)
+    
+    X, Y = np.meshgrid(x, y)
+    
+    # Parallel computation of E_field
+    def compute_E_field(i, j):
+        return field_func(X[i, j], Y[i, j])
+    
+    E_field_list = Parallel(n_jobs=-1)(delayed(compute_E_field)(i, j)\
+                                        for i in range(num_grids) for j in range(num_grids))
+    
+    E_field = np.array(E_field_list).reshape(num_grids, num_grids, -1)
     
     Ex = E_field[:,:,0]
     Ey = E_field[:,:,1]
